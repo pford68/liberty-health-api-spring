@@ -37,7 +37,7 @@ dependencies {
 
 
 flyway {
-	url = 'jdbc:mysql://localhost:3306/liberty_dev'
+	url = project.findProperty("dbUrl")
 	user = project.findProperty('dbUser')
 	password = project.findProperty('dbPassword')
 }
