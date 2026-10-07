@@ -1,3 +1,11 @@
+buildscript {
+	repositories { mavenCentral() }
+	dependencies {
+		classpath 'com.mysql:mysql-connector-j:8.4.0'
+		classpath 'org.flywaydb:flyway-mysql:13.9.0'
+	}
+}
+
 plugins {
 	id 'java'
 	id 'org.springframework.boot' version '4.1.1'
@@ -13,26 +21,45 @@ java {
 	}
 }
 
+configurations {
+	flywayMigration
+}
+
 repositories {
 	mavenCentral()
 }
 
 dependencies {
 	implementation platform('org.springframework.boot:spring-boot-dependencies:4.1.1')
-
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-hateoas'
 	implementation 'org.springframework.boot:spring-boot-starter-restclient'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.0'
 	implementation 'com.mysql:mysql-connector-j:8.4.0'
 	implementation 'org.flywaydb:flyway-mysql:13.9.0'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.0'
 	compileOnly 'org.projectlombok:lombok:1.18.48'
 	annotationProcessor 'org.projectlombok:lombok:1.18.48'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	flywayMigration 'com.mysql:mysql-connector-j:8.4.0'
+	flywayMigration 'org.flywaydb:flyway-mysql:13.9.0'
+}
+
+processResources {
+	inputs.property "dbUrl", project.findProperty('dbUrl')
+	inputs.property "dbUser", project.findProperty('dbUser')
+	inputs.property "dbPassword", project.findProperty('dbPassword')
+
+	filesMatching('**/application.properties') {
+		expand(
+				'dbUrl': project.findProperty('dbUrl'),
+				'dbUser': project.findProperty('dbUser'),
+				'dbPassword': project.findProperty('dbPassword')
+		)
+	}
 }
 
 
@@ -40,8 +67,10 @@ flyway {
 	url = project.findProperty("dbUrl")
 	user = project.findProperty('dbUser')
 	password = project.findProperty('dbPassword')
+	configurations = ["flywayMigration"]
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+	outputs.upToDateWhen { false }
 }
